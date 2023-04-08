@@ -7,6 +7,7 @@ Questo progetto è utilizzabile in tre modalità diverse.
   > Pacchetto completo per gestire il condizionatore integrato con smart ir in modo automatico con una card più completa rispetto alla precedente
 - Blueprint per gestione automazione
   > Progetto di facile configurazione adatto per tutte le entità climate per la gestione automatica del condizionatore
+ ## Indice
 - [Card base per telecomando](#card-base-per-telecomando)
   - [Requisiti](#requisiti-card-base)
   - [Funzioni card](#funzioni-card)
@@ -154,7 +155,7 @@ variables:
   climate: climate.condizionatore_salone
   name: ac_salone
 ```
-# Blueperint per gestione automazione:
+## Blueperint per gestione automazione:
 ### Requisiti Blueprint
 
 A differenza di quanto trattato sopra questo progetto è compatibile con tutte le entità climate 
