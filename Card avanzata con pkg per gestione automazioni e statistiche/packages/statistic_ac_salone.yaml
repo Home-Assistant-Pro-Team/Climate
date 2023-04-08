@@ -1,0 +1,208 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+        kwh totali:                                 &kwh            sensor.condizionatore_sala_energy
+        climate:                                    &climate        climate.condizionatore_salone
+
+template:
+  - sensor:
+      - name: time_on_ac_salone ## PERSONALIZZA ARRAY CLIMATE CON LA PROPRIA ENTITA' 
+        state:  >-
+          {%set climate = 'climate.condizionatore_salone' %}
+          {%if not is_state(climate,'off') and as_timestamp(states[climate].last_changed) <= as_timestamp(now())%}
+            {{((as_timestamp(now()) - as_timestamp(states.climate.condizionatore_salone.last_changed))/3600)}}
+          {% else %}
+            0
+          {% endif %}          
+  - sensor:
+      - name: Consumi AC Salone ## PERSONALIZZA ARRAY climate_energy CON LA PROPRIA ENTITA' 
+        icon: mdi:history
+        state:  >
+          {% set climate_energy = 'sensor.condizionatore_sala_energy' %}
+          {{(states(climate_energy)|float(0)-states('sensor.consumo_iniziale_ac_salone')|float(0))|round(2)}}
+        unit_of_measurement: 'kWh'
+        attributes:
+          consumo_ieri: "{{state_attr('sensor.consumo_oggi_ac_salone','last_period')|round(2)}} kWh"
+          consumo_oggi: "{{states('sensor.consumo_oggi_ac_salone')|round(2)}} kWh"
+          consumo_mese: "{{states('sensor.consumo_mese_ac_salone')|round(2)}} kWh"
+          consumo_anno: "{{states('sensor.consumo_anno_ac_salone')|round(2)}} kWh"
+          costo_ultimo: "{{((this.state |float(0)) * (states('input_number.costo_energia_casa')|float(0))) |round(2, default=0) }} €"
+          costo_ieri: "{{((state_attr('sensor.consumo_oggi_ac_salone', 'last_period') |float(0)) * (states('input_number.costo_energia_casa')|float(0))) |round(2, default=0) }} €"
+          costo_oggi: "{{((states('sensor.consumo_oggi_ac_salone') |float(0)) * (states('input_number.costo_energia_casa')|float(0))) |round(2, default=0) }} €"
+          costo_mese: "{{((states('sensor.consumo_mese_ac_salone') |float(0)) * (states('input_number.costo_energia_casa')|float(0))) |round(2, default=0) }} €"
+          costo_anno: "{{((states('sensor.consumo_anno_ac_salone') |float(0)) * (states('input_number.costo_energia_casa')|float(0))) |round(2, default=0) }} €"
+  - trigger:
+      - platform: state
+        entity_id: *climate
+        to: 'off'
+    sensor:
+      - name: fine_ac_salone
+        state: "{{as_timestamp(now())}}"
+      - name: Consumo iniziale ac_salone ## PERSONALIZZA ARRAY climate_energy CON LA PROPRIA ENTITA' 
+        state: >
+          {% set climate_energy = 'sensor.condizionatore_sala_energy' %}
+          {{states(climate_energy)}}
+  - sensor:
+      - name: ac_salone
+        icon: mdi:history ## PERSONALIZZA ARRAY CLIMATE CON LA PROPRIA ENTITA' 
+        state: >
+          {% set climate = 'climate.condizionatore_salone' %}
+          {% set time =(as_timestamp(now()) - states('sensor.inizio_ac_salone')|float(0))/3600 %}
+          {% set minutes = ((time % 1) * 60) | int (0)%}
+          {% set hours = (time - (time % 1)) | int(0) %}
+          {%if not is_state(climate,'off')%}
+            {% if hours|int >0 %}
+              {{hours}}h {{minutes}}m
+            {% else %}
+              {{minutes}}min
+            {% endif %}
+          {% else %}
+            {% set time =(states('sensor.fine_ac_salone')|float(0)-states('sensor.inizio_ac_salone')|float(0))/3600%}
+            {% set minutes = ((time % 1) * 60) | int (0)%}
+            {% set hours = (time - (time % 1)) | int(0) %}
+            {% set day = ((hours |int /24))|int(0) %}
+              {% if day|int(0) >0 %}
+              {{day}}d {{(hours|int)-(day*24)}}h {{minutes}}m
+            {% elif hours|int(0) >0 %}
+              {{hours}}h {{minutes}}m
+            {% else %}
+              {{minutes}}min
+            {% endif %}
+          {% endif %}
+        attributes:
+#####################################################################
+#             FINE PERSONALIZZAZIONE
+#####################################################################
+          Oggi: >
+            {% set time = states('sensor.tempo_oggi_ac_salone') | float(0) %}
+            {% set minutes = ((time % 1) * 60) | int(0) %}
+            {% set hours = (time - (time % 1)) | int(0) %}
+              {% if hours|int(0) >0 %}
+                {{hours}}h {{minutes}}m
+              {% else %}
+                {{minutes}}min
+              {% endif %}
+          Ieri: >
+            {% set time = state_attr('sensor.tempo_oggi_ac_salone', 'last_period') | float(0) %}
+            {% set minutes = ((time % 1) * 60) | int(0) %}
+            {% set hours = (time - (time % 1)) | int(0) %}
+              {% if hours|int(0) >0 %}
+                {{hours}}h {{minutes}}m
+              {% else %}
+                {{minutes}}min
+              {% endif %}
+          Mese: >
+            {% set time = states('sensor.tempo_mese_ac_salone') | float(0) %}
+            {% set minutes = ((time % 1) * 60) | int(0) %}
+            {% set hours = (time - (time % 1)) | int(0) %}
+            {% set day = ((hours |int /24))|int(0) %}
+              {% if day|int(0) >0 %}
+                {{day}}d {{(hours|int)-(day*24)}}h {{minutes}}m
+              {% elif hours|int(0) >0 %}
+                {{hours}}h {{minutes}}m
+              {% else %}
+                {{minutes}}min
+              {% endif %}
+          Anno: >
+              {% set time = states('sensor.tempo_anno_ac_salone') | float(0) %}
+              {% set minutes = ((time % 1) * 60) | int(0) %}
+              {% set hours = (time - (time % 1)) | int(0) %}
+              {% set day = ((hours |int(0) /24))|int(0) %}
+                {% if day|int(0) >0 %}
+                  {{day}}d {{(hours|int(0))-(day*24)}}h {{minutes}}m
+                {% elif hours|int(0) >0 %}
+                  {{hours}}h {{minutes}}m
+                {% else %}
+                  {{minutes}}min
+                {% endif %}
+  - trigger:
+      - platform: state
+        entity_id: *climate
+        not_to: 'off'
+    sensor:
+      - name: inizio_ac_salone
+        state: "{{as_timestamp(now())}}"
+
+utility_meter:
+  tempo_oggi_ac_salone:
+    source: sensor.time_on_ac_salone
+    cycle: daily
+  tempo_mese_ac_salone:
+    source: sensor.time_on_ac_salone
+    cycle: monthly
+  tempo_anno_ac_salone:
+    source: sensor.time_on_ac_salone
+    cycle: yearly
+  consumo_oggi_ac_salone:
+    source: *kwh
+    cycle: daily  
+  consumo_mese_ac_salone: 
+    source: *kwh
+    cycle: monthly  
+  consumo_anno_ac_salone: 
+    source: *kwh
+    cycle: monthly
+
+# RESET CONTATORI TEMPO E CONSUMI
+input_text:
+  data_reset_ac_salone:
+
+script:
+  reset_statistic_ac_salone:
+    sequence:
+      - alias: imposta data ultimo reset
+        service: input_text.set_value
+        data:
+          value: >-
+            {{now().strftime('%d/%m/%Y %H:%M')}}
+        target:
+          entity_id: input_text.data_reset_ac_salone
+      - alias: resetta i contantori statistiche
+        service: utility_meter.calibrate
+        data:
+          value: "0"
+        target: 
+          entity_id:
+            - sensor.tempo_oggi_ac_salone
+            - sensor.tempo_mese_ac_salone
+            - sensor.tempo_anno_ac_salone
+            - sensor.consumo_oggi_ac_salone
+            - sensor.consumo_mese_ac_salone
+            - sensor.consumo_anno_ac_salone
+
+# PER FUNZIONAMENTO CARDO
+input_boolean: 
+  statistic_ac_salone: 
+
+input_select: 
+  setting_card_ac_salone:
+    name: setting_card_ac_salone
+    options:
+      - "off"
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+
+automation:
+- id: gestione_pulsanti_card_ac_salone
+  alias: Gestione pulsanti card ac_salone
+  trigger:
+  - platform: state
+    entity_id:  input_boolean.statistic_ac_salone
+    to: 'on'
+  - platform: state
+    entity_id: input_select.setting_card_ac_salone
+    not_to: 'off'
+  action:
+  - if: "{{trigger.entity_id == 'input_boolean.statistic_ac_salone'}}"
+    then:
+        - service: input_select.select_option
+          target:
+            entity_id: input_select.setting_card_ac_salone
+          data:
+            option: 'off'
+    else:
+        - service: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.statistic_ac_salone

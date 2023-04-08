@@ -1,0 +1,167 @@
+display_settign_fields:
+  variables:
+    page: ' '
+  template: background_display
+  styles:
+    custom_fields:
+      line_1:
+        - position: absolute
+        - top: 0px
+      line_2:
+        - position: absolute
+        - top: 42.3px
+      line_3:
+        - position: absolute
+        - top: 84.6ps
+      line_4:
+        - position: absolute
+        - top: 126.9px
+      line_5:
+        - position: absolute
+        - top: 169.2px
+      page:
+        - position: absolute
+        - left: 158px
+        - top: 190px
+  custom_fields:
+    page:
+      card:
+        type: custom:button-card
+        name: '[[[ return variables.page ]]]'
+        styles:
+          card:
+            - background-color: rgba(0,0,0,0.0)
+            - border: 0px
+          name:
+            - color: rgba(49, 46, 42, 1)
+            - font-size: 70%
+            - justify-self: left
+
+display_setting_on_off:
+  show_label: true
+  styles:
+    card:
+      - background-color: rgba(0,0,0,0.0)
+      - border-bottom: 1px solid
+      - border-top: 0px solid
+      - border-left: 0px solid
+      - border-right: 0px solid
+      - border-color: rgba(49, 46, 42, 1)
+      - height: 42.3px
+      - border-radius: 0px
+      - width: 181.5px
+    name:
+      - color: rgba(49, 46, 42, 1)
+      - font-size: 80%
+      - justify-self: left
+    label:
+      - color: rgba(49, 46, 42, 1)
+      - font-size: 80%
+      - justify-self: left
+
+background_display:
+  styles:
+    card:
+      - background-color: rgba(0,0,0,0.0)
+      - border-width: 0px
+      - height: 211.5px
+      - width: 181.5px
+      - padding: 0px
+      - border-radius: 0px
+
+statistic_climate:
+  tap_action:
+    action: none
+  show_label: true
+  styles:
+    card:
+      - background-color: rgba(0,0,0,0.0)
+      - border-bottom: 1px solid
+      - border-top: 0px solid
+      - border-left: 0px solid
+      - border-right: 0px solid
+      - border-color: rgba(49, 46, 42, 1)
+      - height: 42.3px
+      - width: 181.5px
+      - border-radius: 0px
+      - border-radius: 0px
+    name:
+      - color: rgba(49, 46, 42, 1)
+      - font-size: 80%
+      - justify-self: left
+    label:
+      - color: rgba(49, 46, 42, 1)
+      - font-size: 80%
+      - justify-self: right
+    custom_fields:
+      name:
+        - position: absolute
+        - left: '-0px'
+        - top: '-2.5px'
+  custom_fields:
+    name:
+      card:
+        show_label: true
+        styles:
+          card:
+            - background-color: rgba(0,0,0,0.0)
+            - width: 181.5px
+            - border-width: 0px
+            - border-radius: 0px
+          name:
+            - color: rgba(49, 46, 42, 1)
+            - font-size: 80%
+            - justify-self: right
+          label:
+            - color: rgba(49, 46, 42, 1)
+            - font-size: 80%
+            - justify-self: left
+
+mode_display:
+  tap_action:
+    action: none
+  styles:
+    card:
+      - background-color: rgba(0,0,0,0.0)
+      - border-width: 0px
+      - border-radius: 0px
+      - width: 40px
+    icon:
+      - width: 80%
+      - color: rgba(49, 46, 42, 1)
+
+info_display:
+  tap_action:
+    action: none
+  show_icon: true
+  show_label: true
+  styles:
+    card:
+      - height: 50px
+      - background-color: rgba(0,0,0,0.0)
+      - width: 130px
+      - border-width: 0px
+      - border-radius: 0px
+    name:
+      - color: rgba(49, 46, 42, 1)
+      - font-size: 90%
+      - justify-self: left
+    label:
+      - color: rgba(49, 46, 42, 1)
+      - justify-self: left
+      - font-size: 90%
+    icon:
+      - width: 70%
+      - color: rgba(49, 46, 42, 1)
+
+button_climate:
+  styles:
+    card:
+      - height: 50px
+      - width: 80px
+      - background-color: rgba(0,0,0,0.0
+      - border-width: 0px
+      - border-radius: 0px
+    icon:
+      - width: 40%
+      - color: rgba(120, 120, 120, 1)

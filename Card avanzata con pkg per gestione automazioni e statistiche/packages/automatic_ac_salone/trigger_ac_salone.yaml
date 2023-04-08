@@ -1,0 +1,204 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+        Entità clima:                               &climate        climate.condizionatore_salone
+        Sensore Finestra:                           &windows       binary_sensor.finestra_tavolo
+        Presenza in casa:                           &family         group.famiglia
+  
+template:
+  - sensor:
+      - name: thom_esterno ## PERSONALIZZA ARRAY SE UTILIZZI ALTRI SENSORI PER LA TEMPERATURA ESTERNA
+        unit_of_measurement: 'DI'
+        state: >-     
+            {% set temp_ext = state_attr('weather.home','temperature')|float(0)%}
+            {% set hum_ext = state_attr('weather.home','humidity')|float(0) %}
+            {{ (temp_ext - (0.55-0.0055 * hum_ext)*(temp_ext - 14.5))|round(1) }}
+  - binary_sensor:
+      - name: Trigger ac_salone ## PERSONALIZZA ARRAY CLIMATE CON LA PROPRIA ENTITA' 
+        state: >
+          {%set climate = 'climate.condizionatore_salone' %}
+          {%set thom_int = states('sensor.thom_ac_salone')|float(0)%}
+          {% set mode = states('input_select.season_of_use_ac_salone') %}
+          {{
+            ('Estate Gradi Celsius' == mode and state_attr(climate,'current_temperature')|float(0) > states('input_number.temperature_auto_on_summer_ac_salone')|float(0) and state_attr(climate,'current_humidity')|int(0) > states('input_number.humidity_auto_on_summer_ac_salone')|int(0)) or 
+            ('Inverno' == mode and state_attr(climate,'current_temperature')|float(0) < (states('input_number.temperature_auto_on_winter_ac_salone'))|float(0)) or 
+            ('Estate Indice di thom' == mode and thom_int > (states('input_number.temperature_auto_on_thom_ac_salone'))|float(0)) or
+            ('Umidità' == mode and state_attr(climate,'current_humidity')|int(0) > (states('input_number.humidity_auto_on_ac_salone'))|int(0))
+          }}
+  - sensor:
+      - name: thom_ac_salone ## PERSONALIZZA ARRAY CLIMATE CON LA PROPRIA ENTITA' 
+        unit_of_measurement: 'DI'
+        state: >-     
+            {% set climate = 'climate.condizionatore_salone'%}
+            {{ (state_attr(climate,'current_temperature')|float(0) - (0.55-0.0055 * state_attr(climate,'current_humidity')|float(0))*(state_attr(climate,'current_temperature')|float(0) - 14.5))|round(1) }}
+
+#####################################################################
+#             FINE PERSONALIZZAZIONE
+#####################################################################
+input_number:
+  temperature_auto_on_summer_ac_salone:
+    name: Temperatura Auto ON Estate Celsius
+    icon: mdi:temperature-celsius
+    mode: box
+    min: 17
+    max: 30
+    step: 0.5
+    unit_of_measurement: "°C"
+  temperature_auto_off_summer_ac_salone:
+    name: Temperatura Auto OFF Estate Celsius
+    icon: mdi:temperature-celsius
+    mode: box
+    min: 17
+    max: 30
+    step: 0.5
+    unit_of_measurement: "°C"
+  humidity_auto_on_summer_ac_salone:
+    name: Umidità Auto ON Estate Celsius
+    icon: mdi:temperature-celsius
+    mode: box
+    min: 10
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
+  humidity_auto_off_summer_ac_salone:
+    name: Umidità Auto OFF Estate Celsius
+    icon: mdi:temperature-celsius
+    mode: box
+    min: 10
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
+
+  temperature_auto_on_winter_ac_salone:
+    name: Temperatura Auto ON Inverno
+    icon: mdi:temperature-celsius
+    mode: box
+    min: 17
+    max: 30
+    step: 0.5
+    unit_of_measurement: "°C"
+  temperature_auto_off_winter_ac_salone:
+    name: Temperatura Auto OFF Inverno
+    icon: mdi:temperature-celsius
+    mode: box
+    min: 17
+    max: 30
+    step: 0.5
+    unit_of_measurement: "°C"
+
+  temperature_auto_on_thom_ac_salone:
+    name: Temperatura Auto ON Estate Thom
+    icon: mdi:temperature-celsius
+    mode: box
+    min: 22
+    max: 27
+    step: 0.5
+    unit_of_measurement: "DI"
+  temperature_auto_off_thom_ac_salone:
+    name: Temperatura Auto OFF Estate Thom
+    icon: mdi:temperature-celsius
+    mode: box
+    min: 22
+    max: 27
+    step: 0.5
+    unit_of_measurement: "DI"
+
+  humidity_auto_on_ac_salone:
+    name: Umidità Auto ON Estate Celsius
+    icon: mdi:temperature-celsius
+    mode: box
+    min: 10
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
+  humidity_auto_off_ac_salone:
+    name: Umidità Auto OFF Estate Celsius
+    icon: mdi:temperature-celsius
+    mode: box
+    min: 10
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
+
+automation:
+  - alias: Accensione Automatica ac_salone   
+    id: auto_on_ac_salone
+    trigger:
+    - platform: state
+      entity_id: binary_sensor.trigger_ac_salone
+      from: 'off'
+      to: 'on'
+      for:
+        minutes: "{{ states('input_number.delay_auto_on_ac_salone')|int(0) }}"
+    - platform: state
+      entity_id: *family
+      to: "home"
+    - platform: time
+      at: "input_datetime.auto_on_ac_salone"
+    condition:
+    - condition: state
+      entity_id: *climate
+      state: "off"
+    - condition: time
+      after: "input_datetime.auto_on_ac_salone"
+      before: "input_datetime.auto_off_ac_salone"
+    - condition: state
+      entity_id: binary_sensor.trigger_ac_salone
+      state: 'on'
+    action:
+    - choose:
+      - alias: ACCENSIONE LEGATA ALLA PRESENZA
+        conditions: 
+        - condition: state
+          entity_id: input_boolean.presence_ac_salone
+          state: "on"
+        - condition: state
+          state: "home"
+          entity_id: *family
+        sequence:
+        - alias: VERIFICA SE CONTROLLO FINESTRA ATTIVO
+          if: "{{is_state('input_boolean.check_window_ac_salone','on')}}"
+          then:
+            - condition: state
+              entity_id: *windows
+              state: "off"
+            - service: script.check_ext_temp_climate_on_ac_salone
+              data: {}
+          else:
+            - service: script.check_ext_temp_climate_on_ac_salone
+              data: {}           
+      - alias: ACCENSIONE SENZA PRESENZA
+        conditions:
+        - condition: state
+          entity_id: input_boolean.presence_ac_salone
+          state: "off"
+        sequence:
+        - alias: VERIFICA SE CONTROLLO FINESTRA ATTIVO
+          if: "{{is_state('input_boolean.check_window_ac_salone','on')}}"
+          then:
+            - condition: state
+              entity_id: *windows
+              state: "off"
+            - service: script.check_ext_temp_climate_on_ac_salone
+              data: {}
+          else:
+            - service: script.check_ext_temp_climate_on_ac_salone
+              data: {}
+              
+  - alias: Spegnimento automatico ac_salone
+    id: auto_off_ac_salone
+    trigger:
+    - platform: state
+      entity_id: binary_sensor.trigger_ac_salone
+      from: 'on'
+      to: 'off'
+      for:
+        minutes: "{{ states('input_number.delay_auto_off_ac_salone')|int(0) }}"
+    - platform: time
+      at: "input_datetime.auto_off_ac_salone"
+    - platform: state
+      entity_id: *family
+      not_to: "home"
+    action:
+    - service: script.climate_turn_off_ac_salone
+      data: {}

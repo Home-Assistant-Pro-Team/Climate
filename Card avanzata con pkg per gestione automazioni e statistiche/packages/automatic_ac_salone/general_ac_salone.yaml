@@ -1,0 +1,149 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+        Entità clima:                               &climate        climate.condizionatore_salone
+
+climate:   # ESEMPIO PER CREARE ENTITA' CLIMATE. SE GIA CREATA CANCELLARE QUESTA PARTE
+    - platform: smartir
+      name: Condizionatore Salone
+      unique_id: salone_ac
+      device_code: 2020
+      controller_data: remote.broadlink_salone
+      temperature_sensor: sensor.temperature_sala
+      humidity_sensor: sensor.humidity_sala
+      #power_sensor: binary_sensor.condizionatore_salone_power
+template:
+  - select:  # MODIFICARE ARRAY SET CLIMATE IN OPTIONS CON PROPRIA ENTITA' CLIMATE 
+      - name: "fan_modes_ac_salone"
+        state: "{{ states('input_text.fan_modes_ac_salone') }}"
+        options: > 
+          {% set climate = 'climate.condizionatore_salone' %}
+          {{state_attr(climate,'fan_modes')}}
+        select_option:
+        - service: input_text.set_value
+          data:
+            value:  "{{ option }}"
+          target:
+            entity_id: input_text.fan_modes_ac_salone
+input_number:
+  costo_energia_casa:
+    name: Costo Energia
+    initial: 0.28   # INSERIRE IL COSTO ENERGIA AL KW
+    min: 0.000
+    max: 99999.000
+    unit_of_measurement: '€'
+    step: 0.01
+    mode: box
+    icon: mdi:currency-eur
+
+#####################################################################
+#             FINE PERSONALIZZAZIONE
+#####################################################################
+  delay_auto_on_ac_salone:
+    name: Ritardo dalla soglia impostata
+    min: 1
+    max: 60
+    step: 1
+    mode: box
+    unit_of_measurement: "min"
+  delay_auto_off_ac_salone:
+    name: Ritardo dalla soglia impostata
+    min: 1
+    max: 60
+    step: 1
+    mode: box
+    unit_of_measurement: "min"
+  set_temperature_ac_salone:
+    name: Imposta temperatura
+    min: 17
+    max: 30
+    step: 1
+    mode: box
+    unit_of_measurement: °C
+
+input_datetime:
+  auto_on_ac_salone:                                    
+    has_date: false
+    has_time: true
+    name: Orario inizio accesione automatica
+  auto_off_ac_salone:
+    has_date: false
+    has_time: true
+    name: Orario fine spegnimento automatico
+
+input_text:
+  fan_modes_ac_salone:
+
+input_select: 
+  hvac_modes_ac_salone:
+    name: "hvca mode:"
+    options:
+      - Secco
+      - Freddo
+      - Caldo
+      - Ventilazione
+  season_of_use_ac_salone:
+    name:  Periodo utlizzo
+    options:
+      - Estate Indice di thom
+      - Estate Gradi Celsius
+      - Inverno 
+      - Umidità
+
+input_boolean:
+  notify_ac_salone:  
+    name: Notifica 
+  presence_ac_salone:
+    name: Controllo presenza in casa
+
+script:
+  climate_turn_off_ac_salone:
+    alias: Spegnimento condizionatore con notifica
+    variables: 
+      climate: *climate
+    sequence:
+    - not:
+      - condition: state
+        entity_id: *climate
+        state: "off"
+    - service: climate.turn_off
+      target:
+        entity_id: *climate
+    - if: 
+        - "{{is_state('input_boolean.notify_ac_salone','on')}}"
+      then:
+        - service: notify.notify
+          data:
+            title: --{{state_attr(climate,'friendly_name')}}--
+            message: >
+              Spegnimento automatico {{state_attr(climate,'friendly_name')}}! Ci sono {{ state_attr(climate,'current_temperature') }} gradi
+
+  climate_turn_on_ac_salone:
+    alias: Accensione condizionatore con notifica
+    variables: 
+      climate: *climate
+    sequence:
+    - service: climate.set_temperature
+      data:
+        entity_id: *climate
+        temperature: "{{ states('input_number.set_temperature_ac_salone') |float(0) }}"
+        hvac_mode: >
+              {% set state = states('input_select.hvac_modes_ac_salone') %}
+              {% set my_dict = {
+                'Secco': 'dry',
+                'Freddo': 'cool',
+                'Caldo': 'heat',
+                'Ventilazione': 'fan_only' } %}
+              {{my_dict.get(state,'Sconosciuto')}}
+    - service: climate.set_fan_mode
+      data:
+        entity_id: *climate
+        fan_mode: "{{states('select.fan_modes_ac_salone')}}"
+    - if:
+        - "{{is_state('input_boolean.notify_ac_salone','on')}}"
+      then:
+        - service: notify.notify
+          data:
+            title: --{{state_attr(climate,'friendly_name')}}--
+            message: >
+              Accensione automatica {{state_attr(climate,'friendly_name')}} eseguita. Ci sono {{state_attr(climate,'current_temperature') }} gradi

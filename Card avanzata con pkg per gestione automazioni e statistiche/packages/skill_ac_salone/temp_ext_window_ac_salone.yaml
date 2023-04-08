@@ -1,0 +1,325 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+        Entità clima:                               &climate        climate.condizionatore_salone
+        Presenza in casa:                           &family         group.famiglia
+        Sensore Finestra:                           &windows        binary_sensor.finestra_tavolo
+
+template:
+  - binary_sensor: ## PERSONALIZZA ARRAY (climate,hum_ext,temp_ext,)
+      - name: Temperatura esterna ac_salone
+        state: >
+          {%set climate = 'climate.condizionatore_salone' %}
+          {%set hum_ext = state_attr('weather.home','humidity')|int(0) %}
+          {%set temp_ext = state_attr('weather.home','temperature')|float(0)%}
+          {%set thom_ext = states('sensor.thom_esterno')|float(0)%}
+          {%set thom_int = states('sensor.thom_ac_salone')|float(0)%}
+          {% set mode = states('input_select.season_of_use_ac_salone') %} 
+            {{
+            ('Estate Gradi Celsius' == mode and state_attr(climate,'current_temperature')|float(0) > (temp_ext + states('input_number.offset_temp_ext_estate_ac_salone')|float(0)) and state_attr(climate,'current_humidity')|int(0) < ( hum_ext +  states('input_number.offset_humidity_ext_ac_salone')|int(0))) or 
+            ('Inverno' == mode and temp_ext > (state_attr(climate,'current_temperature')|float(0) + states('input_number.offset_temperatura_ext_inverno_ac_salone')|float(0))) or 
+            ('Estate Indice di thom' == mode and thom_int > (thom_ext + states('input_number.offset_thom_ext_ac_salone')|float(0))) or
+            ('Umidità' == mode and state_attr(climate,'current_humidity')|int(0) > (hum_ext + states('input_number.offset_humidity_ext_ac_salone')|int(0)))
+          }}
+        
+#####################################################################
+#             FINE PERSONALIZZAZIONE
+#####################################################################
+input_number:
+  offset_temp_ext_estate_ac_salone:
+    name: Offset Temperatura Esterna estate Celsius
+    min: 0
+    max: 10
+    step: 1
+    unit_of_measurement: "°C"
+    mode: box
+  offset_thom_ext_ac_salone:    
+    name: Offset Temperatura Esterna estate Thom
+    min: 0
+    max: 10
+    step: 1
+    unit_of_measurement: "DI"
+    mode: box
+  offset_temperatura_ext_inverno_ac_salone:
+    name: Offset Temperatura Esterna Inverno
+    min: 0
+    max: 10
+    step: 1
+    unit_of_measurement: "°C"
+    mode: box
+  offset_humidity_ext_ac_salone:
+    name: Offset Umidità Esterna 
+    min: 10
+    max: 100
+    step: 10
+    unit_of_measurement: "%"
+    mode: box
+
+input_datetime:
+  temp_ext_on_ac_salone:                                    
+    has_date: false
+    has_time: true
+    name: Auto on temperatura esterna
+  temp_ext_off_ac_salone:
+    has_date: false
+    has_time: true
+    name: Auto off temperatura esterna
+
+input_boolean:
+  check_temp_ext_ac_salone:
+  check_window_ac_salone:
+
+script:
+  check_ext_temp_climate_on_ac_salone:
+    alias: Controllo temperatura esterna per accensione clima
+    variables:
+      climate: *climate
+    sequence:
+      - if:
+          - condition: state
+            entity_id: 
+              - binary_sensor.temperatura_esterna_ac_salone
+              - input_boolean.check_temp_ext_ac_salone
+            state: 'on'
+        then:
+          - alias: Mancata accensione clima in base alla temperatura esterna. consiglia di aprire finestre.
+            service: script.clima_on_ext_ac_salone
+            data: {}
+        else:       
+          - alias: Accensione condizionatore
+            service: script.climate_turn_on_ac_salone
+            data: {}
+
+  clima_ext_temp_ac_salone:
+    alias: Controllo temperatura esterna con clima acceso
+    variables:
+      climate: *climate
+    sequence:
+      - condition: time
+        after: "input_datetime.auto_on_ac_salone"
+        before: "input_datetime.auto_off_ac_salone"
+      - condition: state
+        entity_id: input_boolean.notify_ac_salone
+        state: 'on'
+      - service: notify.notify
+        data:
+          title: --CLIMA CASA--
+          message: 'Temperatura esterna {{"maggiore" if is_state("input_select.season_of_use_ac_salone", "Inverno")else "minore" }} di quella target accensione. Spegnere il {{state_attr(climate,"friendly_name")}} ed aprire le finestre.'
+
+  clima_on_ext_ac_salone:
+    alias: Mancata accensione clima in base alla temperatura esterna. consiglia di aprire finestre.
+    variables:
+      climate: *climate
+    sequence:
+      - condition: state
+        entity_id: input_boolean.notify_ac_salone
+        state: 'on'
+      - service: notify.notify
+        data:
+          title: --{{state_attr(climate,'friendly_name')}}--
+          message: >
+            Accensione automatica {{state_attr(climate,'friendly_name')}} non eseguita anche se raggiunta temperatura di target. E' consigliato aprire le finestre.
+
+  check_windows_temp_ext_ac_salone:
+    alias: CONSIGLIO DI CHIUDERE LA FINESTRA IN BASE ALLA TEMPERATURA ESTERNA
+    mode: single
+    variables:
+      climate: *climate
+    sequence:
+    - alias: VERIFICA SE CONTROLLO FINESTRA ATTIVO
+      if:
+      - condition: state
+        entity_id: input_boolean.check_window_ac_salone
+        state: "on"
+      then:
+      - condition: state
+        entity_id: *windows
+        state: "on"
+      - alias: CONSIGLIO DI CHIUDERE LA FINESTRA IN BASE ALLA TEMPERATURA ESTERNA
+        service: notify.notify
+        data:
+          title: --CLIMA CASA--
+          message: 'Temperatura esterna maggiore di quella interna. {{"Aprire" if is_state("input_select.season_of_use_ac_salone", "Inverno")else "Chiudere" }} le finestre {{state_attr(climate,"friendly_name")}}.'
+      else:
+      - alias: Invia notifica
+        service: notify.notify
+        data:
+          title: --CLIMA CASA--
+          message: 'Temperatura esterna maggiore di quella interna. {{"Aprire" if is_state("input_select.season_of_use_ac_salone", "Inverno")else "Chiudere" }} le finestre {{state_attr(climate,"friendly_name")}}.'
+
+automation:
+  - alias: "Notifica: Controllo temperatura esterna con ac_salone acceso"
+    initial_state: true
+    id: spegni_clima_temp_ext_ac_salone
+    trigger:
+    - platform: state
+      entity_id: binary_sensor.temperatura_esterna_ac_salone
+      from: 'off'
+      to: 'on'
+    condition:
+    - condition: state
+      entity_id: input_boolean.check_temp_ext_ac_salone
+      state: 'on'
+    - not:
+      - condition: state
+        entity_id: *climate
+        state: "off"
+    - condition: time
+      after: "input_datetime.auto_on_ac_salone"
+      before: "input_datetime.auto_off_ac_salone"
+    - condition: state
+      entity_id: input_boolean.notify_ac_salone
+      state: 'on'
+    action:
+        - alias: Controllo temperatura esterna con clima acceso
+          service: notify.notify
+          data:
+            title: --CLIMA CASA--
+            message: 'Temperatura esterna {{"maggiore" if is_state("input_select.season_of_use_ac_salone", "Inverno")else "minore" }} di quella target accensione. Spegnere il {{state_attr(climate,"friendly_name")}} ed aprire le finestre.'
+
+  - alias: Avviso temperatura esterna ac_salone
+    initial_state: true
+    description: Notifica di avviso temperatura esterna maggiore di quella interna, aprire o chiudere la finestra.
+    id: notify_tem_ext_ac_salone
+    trigger:    
+    - platform: state
+      entity_id: binary_sensor.temperatura_esterna_ac_salone
+      from: 'off'
+      to: 'on'
+    condition:
+    - condition: state
+      entity_id: 
+        - input_boolean.notify_ac_salone
+        - input_boolean.check_temp_ext_ac_salone
+      state: 'on'
+    - condition: time
+      after: "input_datetime.temp_ext_on_ac_salone"
+      before: "input_datetime.temp_ext_off_ac_salone"
+    action:
+      - alias: AVVISO LEGATO ALLA PRESENZA
+        if: 
+          - condition: state
+            entity_id: input_boolean.presence_ac_salone
+            state: "on"
+          - condition: state
+            entity_id: *family
+            state: "home"
+        then:
+          - alias: VERIFICA SE CONTROLLO FINESTRA ATTIVO e CONSIGLIO DI CHIUDERE LA FINESTRA IN BASE ALLA TEMPERATURA ESTERNA
+            service: script.check_windows_temp_ext_ac_salone
+            data: {}
+        else:
+          - condition: state
+            entity_id: input_boolean.presence_ac_salone
+            state: "off"
+          - alias: VERIFICA SE CONTROLLO FINESTRA ATTIVO e CONSIGLIO DI CHIUDERE LA FINESTRA IN BASE ALLA TEMPERATURA ESTERNA
+            service: script.check_windows_temp_ext_ac_salone
+            data: {}
+
+  - id: avviso.finsestra_aperta_ac_salone
+    alias: Avviso Finestra Aperta in accensione ac_salone
+    initial_state: true
+    variables:
+      climate: *climate
+    trigger:
+    - platform: state                   
+      entity_id: *climate
+      not_to: "off"
+      id: on_ac
+    - platform: state 
+      entity_id: 
+        - *windows
+      to: "on"
+      id: finestra_on
+    - platform: state
+      entity_id: 
+        - *windows
+      from: "on"
+      to: "off"
+      for: "00:00:30"
+      id: finestra_off
+    - platform: state
+      entity_id: 
+        - *windows
+      to: "on"
+      for: "00:00:30"
+      id: finestra_on_30
+    condition:
+      - condition: state
+        entity_id: input_boolean.check_window_ac_salone
+        state: "on"
+    action:
+    - alias: Avviso per apertura finestra con clima acceso
+      if:
+        - condition: trigger
+          id: finestra_on
+        - not:
+            - condition: state
+              entity_id: *climate
+              state: "off"
+        - condition: state
+          entity_id: input_boolean.notify_ac_salone
+          state: 'on'
+      then:
+        - alias: Invia Notifica
+          service: notify.notify
+          data:
+            title: --{{state_attr(climate,'friendly_name')}}--
+            message: "Attenzione è stata aperta la {{ trigger.to_state.name }} con {{state_attr(climate,'friendly_name')}} acceso!"
+    - alias: Avviso per accensione condizionatore con finestra aperta
+      if:
+        - condition: state
+          state: "on"
+          entity_id: 
+            - *windows
+            - input_boolean.notify_ac_salone
+        - condition: trigger
+          id: on_ac
+      then:
+          - alias: Invia Notifica
+            service: notify.notify
+            data:
+              title: --{{state_attr(climate,'friendly_name')}}--
+              message: 'Attenzione è stato acceso il {{ trigger.to_state.name }} ma la finestra è aperta!'
+    - alias: Finestra chiusa nella fascia oraria corretta, accensione condizionatore 
+      choose:
+      - conditions:
+        - condition: trigger
+          id: finestra_off
+        - condition: state
+          entity_id: *climate
+          state: "off"
+        - condition: time
+          after: "input_datetime.auto_on_ac_salone"
+          before: "input_datetime.auto_off_ac_salone"
+        - condition: state
+          entity_id: binary_sensor.trigger_ac_salone
+          state: 'on'
+        sequence:
+        - alias: Scegli se abilitato controllo presenza
+          choose:
+          - alias: PRESENZA IN CASA ABILITATA
+            conditions:
+            - "{{is_state('input_boolean.presence_ac_salone','on')}}"
+            - condition: state
+              state: "home"               
+              entity_id: *family
+            sequence:
+            - alias: ACCENSIONE CONDIZIONATORE
+              service: script.climate_turn_on_ac_salone
+              data: {}
+          - alias: PRESENZA IN CASA NON ABILITAT
+            conditions:
+            - "{{is_state('input_boolean.presence_ac_salone','off')}}"
+            sequence:
+            - alias: ACCENSIONE CONDIZIONATORE
+              service: script.climate_turn_on_ac_salone
+              data: {}
+    - alias: SPEGNI condizionatore DOPO 30 SECONDI CHE è STATA APERTA LA FINESTRA SENZA NOTIFICA PERCHè VIENE RICEVUTA 30 SECONDI PRIMA 
+      if:
+        - condition: trigger
+          id: finestra_on_30
+      then:
+        - alias: Spegnimento condizionatore
+          service: script.climate_turn_off_ac_salone 
+          data: {}
