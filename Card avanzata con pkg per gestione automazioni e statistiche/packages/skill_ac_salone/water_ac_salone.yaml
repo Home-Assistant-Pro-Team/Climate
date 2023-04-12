@@ -1,0 +1,80 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+        Entità clima:                               &climate        climate.condizionatore_salone
+        Sensore Contenitore scarico acqua scarico:  &water          binary_sensor.tanica_acqua
+  
+#####################################################################
+#             FINE PERSONALIZZAZIONE
+#####################################################################
+automation:
+  - alias: Controllo Contenitore scarico acqua ac_salone                           
+    id: controllo_contenitore scarico acqua ac_salone
+    variables:
+      climate: *climate
+    trigger:
+    - platform: state
+      entity_id: *water
+      to: "on"
+    - platform: state
+      entity_id: *climate
+      not_to: "off"
+    - platform: state
+      entity_id: *climate
+      not_to: "off"
+      for: "00:05:00"
+      id: clima_on_5m
+    - platform: state
+      entity_id: *water
+      to: "on"
+      for: "00:05:00"
+      id: clima_on_5m
+    action:
+      - choose:
+          - alias: Passati 5 minuti spegni condizionatore
+            conditions:
+            - condition: trigger
+              id: clima_on_5m
+            sequence:
+            - service: climate.turn_off
+              target:
+                entity_id: *climate
+            - if:
+                - condition: state
+                  entity_id: input_boolean.notify_ac_salone
+                  state: 'on'
+              then: 
+                - service: script.notify_family
+                  data: 
+                    notification_icon: 'mdi:air-conditioner'
+                    tag: 'ac_sala'
+                    title: --{{state_attr(climate,'friendly_name')}}--
+                    message: "Contenitore acqua {{state_attr(climate,'friendly_name')}} pieno! Spegnimento condizionatore!"
+          - alias: AVVISO CHE TRA 5 MINUTI SPEGNE IL CONDIZIONATORE
+            conditions:
+            - condition: state
+              entity_id: 
+                - *water
+                - input_boolean.notify_ac_salone
+              state: "on"
+            - not:
+              - condition: state
+                entity_id: *climate
+                state: "off"
+            sequence:
+            - service: notify.notify
+              data:
+                title: --{{state_attr(climate,'friendly_name')}}--
+                message: "Contenitore acqua {{state_attr(climate,'friendly_name')}} pieno! Tra 5 minuti spegnimento automatico!"
+          - alias: AVVISO Contenitore acqua PIENO
+            conditions:
+            - condition: state
+              entity_id: 
+                - *water
+                - input_boolean.notify_ac_salone
+              state: "on"
+            sequence:
+            - service: notify.notify
+              data:
+                title: --{{state_attr(climate,'friendly_name')}}--
+                message: "ATTENZIONE!!! Contenitore acqua {{state_attr(climate,'friendly_name')}} pieno!"
