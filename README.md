@@ -1,12 +1,12 @@
 # Homeassistant climate
 
-Questo progetto è utilizzabile in tre modalità diverse. 
+Questo progetto è utilizzabile in tre modalità diverse.
 - Card base per telecomando
-  > Permette di simulare il telecomando per un'entità climate creata con smart ir
+  > Permette di simulare il telecomando per un'entità climate creata con smart ir (valido per tutte le lingue)
 - Card avanzata con pkg per gestione automazioni e statistiche
-  > Pacchetto completo per gestire il condizionatore integrato con smart ir in modo automatico con una card più completa rispetto alla precedente
+  > Pacchetto completo per gestire il condizionatore integrato con smart ir in modo automatico con una card più completa rispetto alla precedente (testo in italiano)
 - Blueprint per gestione automazione
-  > Progetto di facile configurazione adatto per tutte le entità climate per la gestione automatica del condizionatore
+  > Progetto di facile configurazione adatto per tutte le entità climate per la gestione automatica del condizionatore (traduzioni in Inglese ed Italiano)
  ## Indice
 - [Card base per telecomando](#card-base-per-telecomando)
   - [Requisiti](#requisiti-card-base)
@@ -21,7 +21,7 @@ Questo progetto è utilizzabile in tre modalità diverse.
   - [Requisiti](#requisiti-blueprint)
   - [Funzioni blueprint](#funzioni-blueprint)
 
-## Card base per telecomando:
+## Card base per telecomando: 
  <img src="https://user-images.githubusercontent.com/62516592/230682774-197c62dc-205e-47e4-8195-d32e354635cc.jpg" width="200">
  
 ### Requisiti card base:
@@ -43,7 +43,7 @@ La card è realizzata con immagine svg e custom button-card
   - **7:** con un tap è possibile diminuire la temperatura impostata
  
 ### Caricamento card base:
-Per eseguire la card basta copiare il file all'interno di una nuova card manuale e sostituire la variabile climate con la propria entità
+Per eseguire la card basta copiare il file all'interno di una nuova card manuale e sostituire la variabile climate con la propria entità 
 
 ``` 
 type: custom:button-card
