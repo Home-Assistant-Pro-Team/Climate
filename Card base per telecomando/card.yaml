@@ -1,0 +1,540 @@
+
+
+type: custom:button-card
+variables:
+  climate: climate.condizionatore_salone
+triggers_update: all
+styles:
+  card:
+    - background-color: rgba(0,0,0,0.0)
+    - border-width: 0px
+    - height: 600px
+    - width: 355px
+    - padding: 0px
+    - border-radius: 0px
+  custom_fields:
+    image:
+      - position: absolute
+      - left: 30px
+      - top: 1px
+    plus:
+      - position: absolute
+      - left: 220px
+      - top: 385px
+    less:
+      - position: absolute
+      - left: 50px
+      - top: 385px
+    power:
+      - position: absolute
+      - left: 137px
+      - top: 387px
+    setting:
+      - position: absolute
+      - left: 175px
+      - top: 465px
+    fan:
+      - position: absolute
+      - left: 90px
+      - top: 315px
+    statistic:
+      - position: absolute
+      - left: 90px
+      - top: 465px
+    hvac:
+      - position: absolute
+      - left: 175px
+      - top: 315px
+    display:
+      - position: absolute
+      - left: 86px
+      - top: 50px
+custom_fields:
+  #       TASTO IMPOSTAZIONI
+  #   AZIONE DA PERSONALIZZARE
+  setting:
+    card:
+      type: custom:button-card
+      icon: mdi:cog-outline
+      styles:
+        card:
+          - height: 50px
+          - width: 80px
+          - background-color: rgba(0,0,0,0.0
+          - border-width: 0px
+          - border-radius: 0px
+        icon:
+          - width: 40%
+          - color: rgba(120, 120, 120, 1)
+      tap_action:
+        action: more-info
+        entity: '[[[ return variables.climate ]]]'
+  #       TASTO STATISTICHE
+  #   AZIONE DA PERSONALIZZARE
+  statistic:
+    card:
+      type: custom:button-card
+      icon: mdi:chart-bell-curve
+      styles:
+        card:
+          - height: 50px
+          - width: 80px
+          - background-color: rgba(0,0,0,0.0
+          - border-width: 0px
+          - border-radius: 0px
+        icon:
+          - width: 40%
+          - color: rgba(120, 120, 120, 1)
+      tap_action:
+        action: more-info
+        entity: '[[[ return variables.climate ]]]'
+  hvac:
+    card:
+      type: custom:button-card
+      icon: mdi:air-filter
+      styles:
+        card:
+          - height: 50px
+          - width: 80px
+          - background-color: rgba(0,0,0,0.0
+          - border-width: 0px
+          - border-radius: 0px
+        icon:
+          - width: 40%
+          - color: rgba(120, 120, 120, 1)
+      tap_action:
+        action: call-service
+        service: climate.set_hvac_mode
+        service_data:
+          entity_id: '[[[ return variables.climate ]]]'
+          hvac_mode: |
+            [[[
+              if (states[variables.climate].attributes.last_on_operation == 'cool') return 'dry';
+              if (states[variables.climate].attributes.last_on_operation == 'dry') return 'fan_only';
+              if (states[variables.climate].attributes.last_on_operation == 'fan_only') return 'heat';
+              else return 'cool';
+            ]]]
+  fan:
+    card:
+      type: custom:button-card
+      icon: mdi:fan
+      styles:
+        card:
+          - height: 50px
+          - width: 80px
+          - background-color: rgba(0,0,0,0.0
+          - border-width: 0px
+          - border-radius: 0px
+        icon:
+          - width: 40%
+          - color: rgba(120, 120, 120, 1)
+      tap_action:
+        action: call-service
+        service: climate.set_fan_mode
+        service_data:
+          entity_id: '[[[ return variables.climate ]]]'
+          fan_mode: |
+            [[[
+              if (states[variables.climate].attributes.fan_mode == 'low') return 'mid';
+              if (states[variables.climate].attributes.fan_mode == 'mid') return 'high';
+              if (states[variables.climate].attributes.fan_mode == 'high') return 'auto';
+              else return 'low';
+            ]]]
+  power:
+    card:
+      type: custom:button-card
+      icon: mdi:power
+      styles:
+        card:
+          - height: 50px
+          - width: 80px
+          - background-color: rgba(0,0,0,0.0
+          - border-width: 0px
+          - border-radius: 0px
+        icon:
+          - width: 100%
+          - color: |
+              [[[
+                if (states[variables.climate].state == 'off') return 'rgba(120, 120, 120, 1)';
+                else return 'rgba(255, 0, 0, 1)';
+              ]]] 
+      tap_action:
+        action: call-service
+        service: |
+          [[[
+            if (states[variables.climate].state == 'off') return 'climate.turn_on';
+            else return 'climate.turn_off';
+          ]]]
+        service_data:
+          entity_id: '[[[ return variables.climate ]]]'
+  plus:
+    card:
+      type: custom:button-card
+      icon: mdi:plus-thick
+      styles:
+        card:
+          - height: 50px
+          - width: 80px
+          - background-color: rgba(0,0,0,0.0
+          - border-width: 0px
+          - border-radius: 0px
+        icon:
+          - width: 40%
+          - color: rgba(120, 120, 120, 1)
+      tap_action:
+        action: call-service
+        service: climate.set_temperature
+        service_data:
+          entity_id: '[[[ return variables.climate ]]]'
+          temperature: '[[[ return states[variables.climate].attributes.temperature + 1; ]]]'
+  less:
+    card:
+      type: custom:button-card
+      icon: mdi:minus-thick
+      styles:
+        card:
+          - height: 50px
+          - width: 80px
+          - background-color: rgba(0,0,0,0.0
+          - border-width: 0px
+          - border-radius: 0px
+        icon:
+          - width: 40%
+          - color: rgba(120, 120, 120, 1)
+      tap_action:
+        action: call-service
+        service: climate.set_temperature
+        service_data:
+          entity_id: '[[[ return variables.climate ]]]'
+          temperature: '[[[ return states[variables.climate].attributes.temperature - 1; ]]]'
+  display:
+    card:
+      type: custom:button-card
+      styles:
+        card:
+          - background-color: rgba(0,0,0,0.0)
+          - border-width: 0px
+          - height: 211.5px
+          - width: 181.5px
+          - padding: 0px
+          - border-radius: 0px
+        custom_fields:
+          set_temp:
+            - position: absolute
+            - left: 35px
+            - top: 20px
+          cur_temp:
+            - position: absolute
+            - left: 0px
+            - top: 165px
+          mode:
+            - position: absolute
+            - top: 115px
+            - left: 2px
+          fan:
+            - position: absolute
+            - top: 77px
+            - left: 140px
+          states:
+            - position: absolute
+            - top: 0px
+            - left: 0px
+      custom_fields:
+        states:
+          card:
+            type: custom:button-card
+            tap_action:
+              action: none
+            show_icon: true
+            show_label: true
+            styles:
+              card:
+                - height: 50px
+                - background-color: rgba(0,0,0,0.0)
+                - width: 181.5px
+                - border-width: 0px
+                - border-radius: 0px
+              name:
+                - justify-self: center
+                - font-size: 100%
+                - color: rgba(49, 46, 42, 1)
+              label:
+                - color: rgba(49, 46, 42, 1)
+                - justify-self: left
+                - font-size: 90%
+              icon:
+                - width: 70%
+                - color: rgba(49, 46, 42, 1)
+            name: '[[[  return states[variables.climate].state.toUpperCase()]]]'
+        fan:
+          card:
+            type: custom:button-card
+            tap_action:
+              action: none
+            show_icon: true
+            show_label: true
+            styles:
+              card:
+                - height: 50px
+                - background-color: rgba(0,0,0,0.0)
+                - width: 130px
+                - border-width: 0px
+                - border-radius: 0px
+              name:
+                - color: rgba(49, 46, 42, 1)
+                - font-size: 90%
+                - justify-self: left
+              label:
+                - color: rgba(49, 46, 42, 1)
+                - justify-self: left
+                - font-size: 90%
+              icon:
+                - width: 70%
+                - color: rgba(49, 46, 42, 1)
+            name: >-
+              [[[ return
+              states[variables.climate].attributes.fan_mode.toUpperCase()]]]
+        mode:
+          card:
+            type: custom:button-card
+            styles:
+              card:
+                - background-color: rgba(0,0,0,0.0)
+                - border-width: 0px
+                - border-radius: 0px
+                - height: 50px
+                - width: 181.5px
+              custom_fields:
+                heat:
+                  - position: absolute
+                cool:
+                  - position: absolute
+                  - left: 45px
+                dry:
+                  - position: absolute
+                  - left: 90px
+                fan_only:
+                  - position: absolute
+                  - left: 135px
+            custom_fields:
+              fan_only:
+                card:
+                  type: custom:button-card
+                  tap_action:
+                    action: none
+                  styles:
+                    card:
+                      - background-color: rgba(0,0,0,0.0)
+                      - border-width: 0px
+                      - border-radius: 0px
+                      - width: 40px
+                    icon:
+                      - width: 80%
+                      - color: rgba(49, 46, 42, 1)
+                  icon: |
+                    [[[
+                      if (states[variables.climate].attributes.last_on_operation == 'fan_only')
+                        return "mdi:fan";
+                    ]]]
+              dry:
+                card:
+                  type: custom:button-card
+                  tap_action:
+                    action: none
+                  styles:
+                    card:
+                      - background-color: rgba(0,0,0,0.0)
+                      - border-width: 0px
+                      - border-radius: 0px
+                      - width: 40px
+                    icon:
+                      - width: 80%
+                      - color: rgba(49, 46, 42, 1)
+                  icon: |
+                    [[[
+                      if (states[variables.climate].attributes.last_on_operation == 'dry')
+                        return "mdi:water-percent";
+                    ]]]
+              cool:
+                card:
+                  type: custom:button-card
+                  tap_action:
+                    action: none
+                  styles:
+                    card:
+                      - background-color: rgba(0,0,0,0.0)
+                      - border-width: 0px
+                      - border-radius: 0px
+                      - width: 40px
+                    icon:
+                      - width: 80%
+                      - color: rgba(49, 46, 42, 1)
+                  icon: |
+                    [[[
+                      if (states[variables.climate].attributes.last_on_operation == 'cool')
+                        return "mdi:snowflake";
+                    ]]]
+              heat:
+                card:
+                  type: custom:button-card
+                  tap_action:
+                    action: none
+                  styles:
+                    card:
+                      - background-color: rgba(0,0,0,0.0)
+                      - border-width: 0px
+                      - border-radius: 0px
+                      - width: 40px
+                    icon:
+                      - width: 80%
+                      - color: rgba(49, 46, 42, 1)
+                  icon: |
+                    [[[
+                      if (states[variables.climate].attributes.last_on_operation == 'heat')
+                        return "mdi:fire";
+                    ]]]
+        cur_temp:
+          card:
+            type: custom:button-card
+            name: >-
+              [[[ return
+              states[variables.climate].attributes.current_temperature + '°' ]]]
+            label: >-
+              [[[ return states[variables.climate].attributes.current_humidity +
+              '%' ]]]
+            icon: mdi:home-export-outline
+            tap_action:
+              action: none
+            show_icon: true
+            show_label: true
+            styles:
+              card:
+                - height: 50px
+                - background-color: rgba(0,0,0,0.0)
+                - width: 181.5px
+                - border-width: 0px
+                - border-radius: 0px
+              name:
+                - color: rgba(49, 46, 42, 1)
+                - font-size: 90%
+                - justify-self: left
+              label:
+                - color: rgba(49, 46, 42, 1)
+                - justify-self: left
+                - font-size: 90%
+              icon:
+                - width: 50%
+                - color: rgba(49, 46, 42, 1)
+              grid:
+                - grid-template-areas: '"i n l " '
+                - grid-template-columns: 1fr 1fr 1fr
+        set_temp:
+          card:
+            type: custom:button-card
+            name: >-
+              [[[ return states[variables.climate].attributes.temperature +
+              '°']]]
+            tap_action:
+              action: none
+            styles:
+              card:
+                - border-width: 0px
+                - background-color: rgba(0,0,0,0.0)
+              name:
+                - color: rgba(49, 46, 42, 1)
+                - font-size: 520%
+  image: >
+    <svg width="294" height="601" viewBox="0 0 294 601" fill="none"> <g
+    filter="url(#filter0_d_23_8)"> <path d="M21.9227 552.203V479.591C2.4621
+    437.45 -4.02479 382.343 21.9227 338.906V46.5134C90.0354 -1.46231 184.744
+    -20.2636 270.372 46.5134V338.906C296.968 386.233 294.374 436.802 270.372
+    479.591V552.203C224.963 594.344 88.0894 617.035 21.9227 552.203Z"
+    fill="#D9D9D9"/> <path d="M248.318 30.9535C192.531 -8.59402 108.201 -10.539
+    46.5749 30.9535V347.334H248.318V30.9535Z" fill="#3A3A3A"/> <path d="M266.924
+    410.869C266.924 477.354 212.996 531.253 146.47 531.253C79.944 531.253
+    26.0156 477.354 26.0156 410.869C26.0156 344.383 79.944 290.484 146.47
+    290.484C212.996 290.484 266.924 344.383 266.924 410.869Z" fill="#3A3A3A"
+    stroke="#1A1A1A" stroke-width="3"/> <path d="M59.1741 361.834C59.1741
+    361.834 59.1745 361.834 59.1753 361.834L59.1741 361.834ZM141.78
+    416.25C165.686 430.044 187.628 442.034 203.784 450.27C211.857 454.386
+    218.508 457.576 223.245 459.586C225.605 460.587 227.537 461.315 228.952
+    461.714C229.647 461.91 230.3 462.051 230.852 462.079C231.124 462.093 231.461
+    462.085 231.8 461.99C232.144 461.893 232.632 461.661 232.939 461.129C233.246
+    460.598 233.203 460.06 233.115 459.713C233.028 459.372 232.866 459.077
+    232.718 458.848C232.418 458.385 231.97 457.89 231.452 457.386C230.399
+    456.361 228.802 455.053 226.754 453.511C222.645 450.415 216.555 446.254
+    208.952 441.324C193.737 431.459 172.376 418.462 148.47 404.669C124.565
+    390.875 102.622 378.884 86.4666 370.648C78.3936 366.532 71.7424 363.342
+    67.0055 361.333C64.6456 360.332 62.7132 359.603 61.2986 359.204C60.6032
+    359.008 59.95 358.867 59.3988 358.839C59.1263 358.825 58.7893 358.833
+    58.4508 358.929C58.106 359.025 57.6183 359.257 57.3111 359.789C57.0039
+    360.321 57.0471 360.859 57.1355 361.205C57.2224 361.546 57.3838 361.842
+    57.5321 362.071C57.832 362.534 58.2806 363.029 58.7982 363.532C59.8511
+    364.557 61.4487 365.866 63.496 367.408C67.6056 370.503 73.6955 374.665
+    81.2984 379.594C96.5129 389.459 117.875 402.456 141.78 416.25Z"
+    stroke="#1A1A1A" stroke-width="3"/> <path d="M60.949 460.903C60.949 460.903
+    60.9492 460.903 60.9495 460.902L60.949 460.903ZM149.405 416.613C173.31
+    402.819 194.672 389.822 209.886 379.958C217.489 375.028 223.579 370.866
+    227.689 367.771C229.736 366.229 231.334 364.921 232.386 363.896C232.904
+    363.392 233.353 362.897 233.653 362.434C233.801 362.205 233.962 361.909
+    234.049 361.569C234.138 361.222 234.181 360.684 233.874 360.152C233.566
+    359.62 233.079 359.389 232.734 359.292C232.395 359.197 232.058 359.189
+    231.786 359.203C231.235 359.231 230.581 359.371 229.886 359.568C228.471
+    359.966 226.539 360.695 224.179 361.696C219.442 363.705 212.791 366.895
+    204.718 371.011C188.563 379.247 166.62 391.238 142.714 405.032C118.809
+    418.826 97.4472 431.823 82.2327 441.687C74.6298 446.617 68.5399 450.779
+    64.4303 453.874C62.383 455.416 60.7854 456.724 59.7325 457.749C59.2148
+    458.253 58.7663 458.748 58.4664 459.211C58.3181 459.44 58.1566 459.736
+    58.0698 460.076C57.9814 460.423 57.9382 460.961 58.2454 461.493C58.5526
+    462.025 59.0403 462.256 59.385 462.353C59.7236 462.448 60.0606 462.456
+    60.3331 462.442C60.8843 462.414 61.5375 462.274 62.2329 462.078C63.6475
+    461.679 65.5799 460.95 67.9398 459.949C72.6767 457.94 79.3279 454.75 87.4009
+    450.634C103.556 442.398 125.499 430.407 149.405 416.613Z" stroke="#1A1A1A"
+    stroke-width="3"/> <path d="M145.174 512.211C145.788 512.211 146.232 511.905
+    146.489 511.655C146.74 511.409 146.916 511.121 147.04 510.879C147.292
+    510.387 147.496 509.751 147.674 509.051C148.036 507.628 148.371 505.591
+    148.683 503.048C149.31 497.943 149.872 490.591 150.342 481.546C151.283
+    463.445 151.864 438.457 151.864 410.869C151.864 383.282 151.283 358.294
+    150.342 340.193C149.872 331.148 149.31 323.796 148.683 318.691C148.371
+    316.148 148.036 314.111 147.674 312.687C147.496 311.987 147.292 311.351
+    147.04 310.86C146.916 310.617 146.74 310.33 146.489 310.084C146.232 309.834
+    145.788 309.528 145.174 309.528C144.561 309.528 144.116 309.834 143.86
+    310.084C143.608 310.33 143.433 310.617 143.309 310.86C143.057 311.351
+    142.852 311.987 142.675 312.687C142.313 314.111 141.978 316.148 141.666
+    318.691C141.038 323.796 140.477 331.148 140.007 340.193C139.066 358.294
+    138.485 383.282 138.485 410.869C138.485 438.457 139.066 463.445 140.007
+    481.546C140.477 490.591 141.038 497.943 141.666 503.048C141.978 505.591
+    142.313 507.628 142.675 509.051C142.852 509.751 143.057 510.387 143.309
+    510.879C143.433 511.121 143.608 511.409 143.86 511.655C144.116 511.905
+    144.561 512.211 145.174 512.211Z" stroke="#1A1A1A" stroke-width="3"/> <path
+    d="M199.056 410.221C199.056 438.884 175.806 462.124 147.12 462.124C118.434
+    462.124 95.1837 438.884 95.1837 410.221C95.1837 381.557 118.434 358.317
+    147.12 358.317C175.806 358.317 199.056 381.557 199.056 410.221Z"
+    fill="#3A3A3A" stroke="#D9D9D9" stroke-width="9"/> <path d="M237.284
+    57.5347H114.033L110.14 4.37243C171.118 -6.649 213.283 10.2073 237.284
+    23.822V57.5347Z" fill="#5D5D5D"/> <path d="M55.6501 25.767V57.5347L76.4083
+    60.7763V47.8099V14.7456C66.6779 18.6355 62.1371 21.2288 55.6501 25.767Z"
+    fill="#5D5D5D"/> <path d="M55.6501 27.712C120.519 -10.5389 190.578 -1.46242
+    240.528 27.712" stroke="#CBB9B8" stroke-linecap="round"/> <g
+    filter="url(#filter1_i_23_8)"> <path d="M55.6501
+    49.1064H237.284V260.459H55.6501V49.1064Z" fill="#CCE4E6"/> <filter
+    id="filter0_d_23_8" x="0.808655" y="3.1961" width="292.55" height="597.563"
+    filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood
+    flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix
+    in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+    127 0" result="hardAlpha"/> <feOffset dy="4"/> <feGaussianBlur
+    stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/>
+    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+    0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix"
+    result="effect1_dropShadow_23_8"/> <feBlend mode="normal" in="SourceGraphic"
+    in2="effect1_dropShadow_23_8" result="shape"/> <filter id="filter1_i_23_8"
+    x="55.6501" y="49.1064" width="181.634" height="215.352"
+    filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood
+    flood-opacity="0" result="BackgroundImageFix"/> <feBlend mode="normal"
+    in="SourceGraphic" in2="BackgroundImageFix" result="shape"/> <feColorMatrix
+    in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+    127 0" result="hardAlpha"/> <feOffset dy="4"/> <feGaussianBlur
+    stdDeviation="2"/> <feComposite in2="hardAlpha" operator="arithmetic"
+    k2="-1" k3="1"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="shape"
+    result="effect1_innerShadow_23_8"/> </svg>
