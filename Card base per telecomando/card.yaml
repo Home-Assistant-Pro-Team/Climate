@@ -51,8 +51,8 @@ styles:
       - top: 50px
     name_climate:
       - position: absolute
-      - left: '-11px'
-      - top: 315px
+      - left: '10px'
+      - top: 319px
 custom_fields:
   #       TASTO IMPOSTAZIONI
   #   AZIONE DA PERSONALIZZARE
@@ -98,12 +98,12 @@ custom_fields:
       custom_fields:
         name_climate: |
           [[[
-            let state = states[variables.climate].attributes.friendly_name
-            return `        
-            <svg width="500" height="500">
-                <path id="curve" fill="none" d="M 90 200 q 94 68 200 0" />
-                <text x="100" y="25" text-anchor="middle" alignment-baseline="central"> 
-                <textPath href="#curve">${state}</>
+              let state = states[variables.climate].attributes.friendly_name
+              return `        
+               <svg width="500" height="500">
+                  <path id="curve" fill="none" d="M 67 200 q 94 68 200 0" />
+                   <text x="100" y="2" text-anchor="middle" alignment-baseline="central"> 
+                   <textPath href="#curve">${state}</>
             `;
           ]]]
   hvac:
