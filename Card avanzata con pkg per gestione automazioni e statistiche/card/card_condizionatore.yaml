@@ -45,6 +45,10 @@
             - position: absolute
             - left: 175px
             - top: 315px
+          name_climate:
+            - position: absolute
+            - left: '-11px'
+            - top: 315px
 
           ## view display
           # generale
@@ -120,12 +124,26 @@
                 ]]]
 
       custom_fields:
+        # NOME CONDIZIONATORE
+        name_climate:
+          card:
+            type: custom:button-card
+            custom_fields:
+              name_climate: |
+                [[[
+                  let state = states[variables.climate].attributes.friendly_name
+                  return `        
+                  <svg width="500" height="500">
+                      <path id="curve" fill="none" d="M 90 200 q 94 68 200 0" />
+                      <text x="100" y="25" text-anchor="middle" alignment-baseline="central"> 
+                      <textPath href="#curve">${state}</>
+                  `;
+                ]]]
         ####################################################################
         #
         #       TASTI TELECOMANDO
         #
         ####################################################################
-
         #       TASTO STATISTICHE
         statistic:
           card:
