@@ -95,6 +95,8 @@ custom_fields:
   name_climate:
     card:
       type: custom:button-card
+      tap_action:
+        action: none
       custom_fields:
         name_climate: |
           [[[
