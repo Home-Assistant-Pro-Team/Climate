@@ -1,0 +1,916 @@
+      type: custom:button-card
+      variables:
+        climate: climate.condizionatore_salone
+        name: ac_salone
+      triggers_update: all
+      template: image
+      styles:
+        card:
+          - background-color: rgba(0,0,0,0.0)
+          - border-width: 0px
+          - height: 600px
+          - width: 355px
+          - padding: 0px
+          - border-radius: 0px
+        custom_fields:
+          image:
+            - position: absolute
+            - left: 30px
+            - top: 1px
+          plus:
+            - position: absolute
+            - left: 220px
+            - top: 385px
+          less:
+            - position: absolute
+            - left: 50px
+            - top: 385px
+          power:
+            - position: absolute
+            - left: 137px
+            - top: 387px
+          setting:
+            - position: absolute
+            - left: 175px
+            - top: 465px
+          fan:
+            - position: absolute
+            - left: 90px
+            - top: 315px
+          statistic:
+            - position: absolute
+            - left: 90px
+            - top: 465px
+          hvac:
+            - position: absolute
+            - left: 175px
+            - top: 315px
+
+          ## view display
+          # generale
+          display:
+            - position: absolute
+            - left: 86px
+            - top: 50px
+            - display: |
+                [[[
+                  if (states['input_boolean.statistic_'+variables.name].state == 'off' && states['input_select.setting_card_'+variables.name].state == 'off')
+                    return "block";
+                  return "none";
+                ]]]
+
+          # statistiche
+          display_statistic:
+            - position: absolute
+            - left: 86px
+            - top: 50px
+            - display: |
+                [[[
+                  if (states['input_boolean.statistic_'+variables.name].state == 'on')
+                    return "block";
+                  return "none";
+                ]]]
+
+          # IPOSTAZIONI pag.1
+          display_setting_1:
+            - position: absolute
+            - left: 86px
+            - top: 50px
+            - display: |
+                [[[
+                  if (states['input_select.setting_card_'+variables.name].state == '1')
+                    return "block";
+                  return "none";
+                ]]]
+
+          # IPOSTAZIONI pag.2
+          display_setting_2:
+            - position: absolute
+            - left: 86px
+            - top: 50px
+            - display: |
+                [[[
+                  if (states['input_select.setting_card_'+variables.name].state == '2')
+                    return "block";
+                  return "none";
+                ]]]
+
+          # IPOSTAZIONI pag.3
+          display_setting_3:
+            - position: absolute
+            - left: 86px
+            - top: 50px
+            - display: |
+                [[[
+                  if (states['input_select.setting_card_'+variables.name].state == '3')
+                    return "block";
+                  return "none";
+                ]]]
+
+          # IPOSTAZIONI pag.4
+          display_setting_4:
+            - position: absolute
+            - left: 86px
+            - top: 50px
+            - display: |
+                [[[
+                  if (states['input_select.setting_card_'+variables.name].state == '4')
+                    return "block";
+                  return "none";
+                ]]]
+
+      custom_fields:
+        ####################################################################
+        #
+        #       TASTI TELECOMANDO
+        #
+        ####################################################################
+
+        #       TASTO STATISTICHE
+        statistic:
+          card:
+            type: custom:button-card
+            icon: mdi:chart-bell-curve
+            template: button_climate
+            tap_action:
+              action: call-service
+              service: input_boolean.toggle
+              service_data:
+                entity_id: '[[[ return "input_boolean.statistic_"+variables.name ]]]'
+            styles:
+              icon:
+                - color: |
+                    [[[
+                      if (states["input_boolean.statistic_"+variables.name].state == 'off') return 'rgba(120, 120, 120, 1)';
+                      else return 'rgba(204, 228, 230, 1)';
+                    ]]]
+
+        #       TASTO MODE 
+        hvac:
+          card:
+            type: custom:button-card
+            icon: mdi:air-filter
+            template: button_climate
+            tap_action:
+              action: call-service
+              service: climate.set_hvac_mode
+              service_data:
+                entity_id: '[[[ return variables.climate ]]]'
+                hvac_mode: |
+                  [[[
+                    if (states[variables.climate].attributes.last_on_operation == 'cool') return 'dry';
+                    if (states[variables.climate].attributes.last_on_operation == 'dry') return 'fan_only';
+                    if (states[variables.climate].attributes.last_on_operation == 'fan_only') return 'heat';
+                    else return 'cool';
+                  ]]]      
+
+        #       TASTO FAN
+        fan:
+          card:
+            type: custom:button-card
+            icon: mdi:fan
+            template: button_climate
+            tap_action:
+              action: call-service
+              service: climate.set_fan_mode
+              service_data:
+                entity_id: '[[[ return variables.climate ]]]'
+                fan_mode: |
+                  [[[
+                    if (states[variables.climate].attributes.fan_mode == 'low') return 'mid';
+                    if (states[variables.climate].attributes.fan_mode == 'mid') return 'high';
+                    if (states[variables.climate].attributes.fan_mode == 'high') return 'auto';
+                    else return 'low';
+                  ]]]      
+
+        #       TASTO IMPOSTAZIONI
+        setting:
+          card:
+            type: custom:button-card
+            icon: mdi:cog-outline
+            template: button_climate
+            styles:
+              icon:
+                - color: |
+                    [[[
+                      if (states["input_select.setting_card_"+variables.name].state == 'off') return 'rgba(120, 120, 120, 1)';
+                      else return 'rgba(204, 228, 230, 1)';
+                    ]]]
+            tap_action:
+              action: call-service
+              service: input_select.select_next
+              service_data:
+                entity_id: '[[[ return "input_select.setting_card_"+variables.name ]]]'
+            hold_action:
+              action: call-service
+              service: input_select.select_option
+              service_data:
+                entity_id: '[[[ return "input_select.setting_card_"+variables.name ]]]'
+                option: 'off'
+
+        #       TASTO ON/OFF
+        power:
+          card:
+            type: custom:button-card
+            icon: mdi:power
+            template: button_climate
+            styles:
+              icon:
+                - width: 100%
+                - color: |
+                    [[[
+                      if (states[variables.climate].state == 'off') return 'rgba(120, 120, 120, 1)';
+                      else return 'rgba(255, 0, 0, 1)';
+                    ]]] 
+            tap_action:
+              action: call-service
+              service: |
+                [[[
+                  if (states[variables.climate].state == 'off') return 'climate.turn_on';
+                  else return 'climate.turn_off';
+                ]]]
+              service_data:
+                entity_id: '[[[ return variables.climate ]]]'
+
+        #       TASTO AUMENTA TEMPERATURA
+        plus:
+          card:
+            type: custom:button-card
+            icon: mdi:plus-thick
+            template: button_climate
+            tap_action:
+              action: call-service
+              service: climate.set_temperature
+              service_data:
+                entity_id: '[[[ return variables.climate ]]]'
+                temperature: "[[[ return states[variables.climate].attributes.temperature + 1; ]]]"
+
+        #       TASTO DIMINUISCI TEMPERATURA
+        less:
+          card:
+            type: custom:button-card
+            icon: mdi:minus-thick
+            template: button_climate
+            tap_action:
+              action: call-service
+              service: climate.set_temperature
+              service_data:
+                entity_id: '[[[ return variables.climate ]]]'
+                temperature: "[[[ return states[variables.climate].attributes.temperature - 1; ]]]"
+
+        ##############################################################################
+        #
+        #             DISPLAY
+        #
+        #########################################################################
+
+        #       GENERALE 
+        display:
+          card:
+            type: custom:button-card
+            template: background_display
+            styles:
+              custom_fields:
+                set_temp:
+                  - position: absolute
+                  - left: 35px
+                  - top: 20px
+                cur_temp:
+                  - position: absolute
+                  - left: 0px
+                  - top: 165px
+                automation:
+                  - position: absolute
+                  - left: 53px
+                  - top: 165px
+                mode:
+                  - position: absolute
+                  - top: 115px
+                  - left: 2px
+                fan:
+                  - position: absolute
+                  - top: 77px
+                  - left: 140px
+                states:
+                  - position: absolute
+                  - top: 0px
+                  - left: 0px
+
+            custom_fields:
+              states:
+                card:
+                  type: custom:button-card
+                  template: info_display
+                  styles:
+                    card:
+                      - width: 181.5px
+                    name:
+                      - justify-self: center
+                      - font-size: 100%
+                  name: |
+                    [[[
+                      if (states[variables.climate].state == 'off') return 'Spento ';
+                      else return 'Acceso: ' + states["sensor."+variables.name].state;
+                    ]]]
+
+              fan:
+                card:
+                  type: custom:button-card
+                  template: info_display
+                  name: '[[[ return states[variables.climate].attributes.fan_mode]]]'
+
+              mode:
+                card:
+                  type: custom:button-card
+                  styles:
+                    card:
+                      - background-color: rgba(0,0,0,0.0)
+                      - border-width: 0px
+                      - border-radius: 0px
+                      - height: 50px
+                      - width: 181.5px
+                    custom_fields:
+                      heat:
+                        - position: absolute
+                      cool:
+                        - position: absolute
+                        - left: 45px
+                      dry:
+                        - position: absolute
+                        - left: 90px
+                      fan_only:
+                        - position: absolute
+                        - left: 135px
+                  custom_fields:
+                    fan_only:
+                      card:
+                        type: custom:button-card
+                        template: mode_display
+                        icon: |
+                          [[[
+                            if (states[variables.climate].attributes.last_on_operation == 'fan_only')
+                              return "mdi:fan";
+                          ]]]
+                    dry:
+                      card:
+                        type: custom:button-card
+                        template: mode_display
+                        icon: |
+                          [[[
+                            if (states[variables.climate].attributes.last_on_operation == 'dry')
+                              return "mdi:water-percent";
+                          ]]]
+                    cool:
+                      card:
+                        type: custom:button-card
+                        template: mode_display
+                        icon: |
+                          [[[
+                            if (states[variables.climate].attributes.last_on_operation == 'cool')
+                              return "mdi:snowflake";
+                          ]]]
+                    heat:
+                      card:
+                        type: custom:button-card
+                        template: mode_display
+                        icon: |
+                          [[[
+                            if (states[variables.climate].attributes.last_on_operation == 'heat')
+                              return "mdi:fire";
+                          ]]]
+
+              automation:
+                card:
+                  type: custom:button-card
+                  name: >-
+                    [[[ return "AutoOn:
+                    "+states['automation.accensione_automatica_'+variables.name].state]]]
+                  label: >-
+                    [[[ return "AutoOff:
+                    "+states['automation.spegnimento_automatico_'+variables.name].state]]]
+                  template: info_display
+                  styles:
+                    grid:
+                      - grid-template-areas: '"i n " "i l"'
+                      - grid-template-columns: 1fr 2fr
+
+              cur_temp:
+                card:
+                  type: custom:button-card
+                  name: "[[[ return states[variables.climate].attributes.current_temperature + '°' ]]]"
+                  label: "[[[ return states[variables.climate].attributes.current_humidity + '%' ]]]"
+                  icon: mdi:home-export-outline
+                  template: info_display
+                  styles:
+                    grid:
+                      - grid-template-areas: '"i n " "i l"'
+                      - grid-template-columns: 1fr 2fr
+
+              set_temp:
+                card:
+                  type: custom:button-card
+                  name: "[[[ return states[variables.climate].attributes.temperature + '°']]]"
+                  tap_action:
+                    action: none
+                  styles:
+                    card:
+                      - border-width: 0px
+                      - background-color: rgba(0,0,0,0.0)
+                    name:
+                      - color: rgba(49, 46, 42, 1)
+                      - font-size: 520%
+
+        #       STATISTICHE
+        display_statistic:
+          card:
+            type: custom:button-card
+            template: display_settign_fields
+            custom_fields:
+              line_1:
+                card:
+                  type: custom:button-card
+                  template: statistic_climate
+                  name: Ultimo
+                  label: "[[[ return states['sensor.consumi_'+variables.name].state + 'kWh']]]"
+                  custom_fields:
+                    name:
+                      card:
+                        type: custom:button-card
+                        name: '[[[return states[''sensor.''+variables.name].state ]]]'
+                        label: ' [[[return states[''sensor.consumi_''+variables.name].attributes.costo_ultimo ]]]'
+              line_2:
+                card:
+                  type: custom:button-card
+                  template: statistic_climate
+                  name: Oggi
+                  label: "[[[ return states['sensor.consumi_'+variables.name].attributes.consumo_oggi]]]"
+                  custom_fields:
+                    name:
+                      card:
+                        type: custom:button-card
+                        name: "[[[return states['sensor.'+variables.name].attributes.Oggi]]]"
+                        label: ' [[[return states[''sensor.consumi_''+variables.name].attributes.costo_oggi ]]]'
+              line_3:
+                card:
+                  type: custom:button-card
+                  template: statistic_climate
+                  name: Ieri
+                  label: "[[[ return states['sensor.consumi_'+variables.name].attributes.consumo_ieri]]]"
+                  custom_fields:
+                    name:
+                      card:
+                        type: custom:button-card
+                        name: "[[[return states['sensor.'+variables.name].attributes.Ieri]]]"
+                        label: ' [[[return states[''sensor.consumi_''+variables.name].attributes.costo_ieri ]]]'
+              line_4:
+                card:
+                  type: custom:button-card
+                  template: statistic_climate
+                  name: Mese
+                  label: "[[[ return states['sensor.consumi_'+variables.name].attributes.consumo_mese]]]"
+                  custom_fields:
+                    name:
+                      card:
+                        type: custom:button-card
+                        name: "[[[return states['sensor.'+variables.name].attributes.Mese]]]"
+                        label: ' [[[return states[''sensor.consumi_''+variables.name].attributes.costo_mese ]]]'
+              line_5:
+                card:
+                  type: custom:button-card
+                  template: statistic_climate
+                  name: Anno
+                  label: "[[[ return states['sensor.consumi_'+variables.name].attributes.consumo_anno]]]"
+                  custom_fields:
+                    name:
+                      card:
+                        type: custom:button-card
+                        name: "[[[return states['sensor.'+variables.name].attributes.Anno]]]"
+                        label: ' [[[return states[''sensor.consumi_''+variables.name].attributes.costo_anno ]]]'
+
+        #       IPOSTAZIONI pag.1
+        display_setting_1:
+          card:
+            type: custom:button-card
+            triggers_update: all
+            variables:
+              page: 1/4
+            template: display_settign_fields
+            custom_fields:
+              line_1:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: |
+                    [[[
+                      if (states['automation.accensione_automatica_'+variables.name].state === 'on') 
+                      return "Auto on: ATTIVO";
+                      else 
+                        return 'Auto on: NON ATTIVO';
+                    ]]]  
+                  label: >-
+                    [[[ return ('Orario:
+                    ')+states['input_datetime.auto_on_'+variables.name].state.substring(0,5)]]]
+                  tap_action:
+                    action: call-service
+                    service: automation.toggle
+                    service_data:
+                      entity_id: '[[[ return "automation.accensione_automatica_"+variables.name ]]]'
+                  hold_action:
+                    action: more-info
+                    entity: '[[[ return "input_datetime.auto_on_"+variables.name ]]]'
+              line_2:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: Modalità impostata
+                  label: >-
+                    [[[ return states['input_select.season_of_use_'+variables.name].state
+                    ]]]
+                  tap_action:
+                    action: call-service
+                    service: input_select.select_next
+                    service_data:
+                      entity_id: '[[[ return "input_select.season_of_use_"+variables.name ]]]'
+              line_3:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: >-
+                    [[[ return ('Set:
+                    ')+states['input_number.set_temperature_'+variables.name].state + ('
+                    °C')]]]
+                  label: >-
+                    [[[ return ('Fan:
+                    ')+states['select.fan_modes_'+variables.name].state ]]]
+                  tap_action:
+                    action: more-info
+                    entity: '[[[ return "input_number.set_temperature_"+variables.name ]]]'
+                  hold_action:
+                    action: call-service
+                    service: select.select_next
+                    service_data:
+                      entity_id: '[[[ return "select.fan_modes_"+variables.name ]]]'
+              line_4:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: >-
+                    [[[ return ('Mode:
+                    ')+states['input_select.hvac_modes_'+variables.name].state]]]
+                  label: |-
+                    [[[
+                      let season = states['input_select.season_of_use_'+variables.name].state;
+                      if (season !== 'Estate Gradi Celsius') 
+                      return ' ';
+                      else 
+                        return ('Umidità on: ')+parseInt(states['input_number.humidity_auto_on_summer_'+variables.name].state) + (' %');
+                    ]]]  
+                  tap_action:
+                    action: call-service
+                    service: input_select.select_next
+                    service_data:
+                      entity_id: '[[[ return "input_select.hvac_modes_"+variables.name ]]]'
+                  hold_action:
+                    action: more-info
+                    entity: >-
+                      [[[
+                      let season =
+                      states['input_select.season_of_use_'+variables.name].state;
+                      if (season === 'Estate Gradi Celsius') 
+                      return "input_number.humidity_auto_on_summer_"+variables.name; ]]]
+              line_5:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: |
+                    [[[
+                      let season = states['input_select.season_of_use_'+variables.name].state;
+                      if (season === 'Inverno') 
+                      return ('Auto on: ')+states['input_number.temperature_auto_on_winter_'+variables.name].state+('°C');
+                      else if (season === 'Umidità') 
+                      return ('Auto on: ')+states['input_number.humidity_auto_on_'+variables.name].state+('%');
+                      else if (season === 'Estate Indice di thom') 
+                      return ('Auto on: ')+states['input_number.temperature_auto_on_thom_'+variables.name].state+(' DI');
+                      else if (season === 'Estate Gradi Celsius') 
+                      return ('Auto on: ')+states['input_number.temperature_auto_on_summer_'+variables.name].state+('°C');
+                      else 
+                        return 'Target: Error';
+                    ]]]  
+                  label: >-
+                    [[[ return ('Ritardo:
+                    ')+parseInt(states['input_number.delay_auto_on_'+variables.name].state)+('min')]]]
+                  tap_action:
+                    action: more-info
+                    entity: |
+                      [[[
+                        let season = states['input_select.season_of_use_'+variables.name].state;
+                        if (season === 'Inverno') 
+                        return "input_number.temperature_auto_on_winter_"+variables.name;
+                        else if (season === 'Umidità') 
+                        return "input_number.humidity_auto_on_"+variables.name;
+                        else if (season === 'Estate Indice di thom') 
+                        return "input_number.temperature_auto_on_thom_"+variables.name;
+                        else if (season === 'Estate Gradi Celsius') 
+                        return "input_number.temperature_auto_on_summer_"+variables.name;
+                        else 
+                          return 'Target: Error';
+                      ]]]  
+                  hold_action:
+                    action: more-info
+                    entity: '[[[ return "input_number.delay_auto_on_"+variables.name ]]]'
+
+        #       IPOSTAZIONI pag.2
+        display_setting_2:
+          card:
+            type: custom:button-card
+            triggers_update: all
+            variables:
+              page: 2/4
+            template: display_settign_fields
+            custom_fields:
+              line_1:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: |
+                    [[[
+                      if (states['automation.spegnimento_automatico_'+variables.name].state === 'on') 
+                      return "Auto off: ATTIVO";
+                      else 
+                        return 'Auto off: NON ATTIVO';
+                    ]]]  
+                  label: "[[[ return ('Orario: ')+states['input_datetime.auto_off_'+variables.name].state.substring(0,5)]]]"
+                  tap_action:
+                    action: call-service
+                    service: automation.toggle
+                    service_data:
+                      entity_id: '[[[ return "automation.spegnimento_automatico_"+variables.name ]]]'
+                  hold_action:
+                    action: more-info
+                    entity: '[[[ return "input_datetime.auto_off_"+variables.name ]]]'
+              line_2:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: Modalità impostata
+                  label: "[[[ return states['input_select.season_of_use_'+variables.name].state]]]"
+                  tap_action:
+                    action: call-service
+                    service: input_select.select_next
+                    service_data:
+                      entity_id: '[[[ return "input_select.season_of_use_"+variables.name ]]]'
+              line_3:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: "[[[ return ('Set: ')+states['input_number.set_temperature_'+variables.name].state + ('°C')]]]"
+                  label: "[[[ return ('Fan: ')+states['select.fan_modes_'+variables.name].state ]]]"
+                  tap_action:
+                    action: more-info
+                    entity: '[[[ return "input_number.set_temperature_"+variables.name ]]]'
+                  hold_action:
+                    action: call-service
+                    service: select.select_next
+                    service_data:
+                      entity_id: '[[[ return "select.fan_modes_"+variables.name ]]]'
+              line_4:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: "[[[ return ('Mode: ')+states['input_select.hvac_modes_'+variables.name].state]]]"
+                  label: |-
+                    [[[
+                      let season = states['input_select.season_of_use_'+variables.name].state;
+                      if (season !== 'Estate Gradi Celsius') 
+                      return ' ';
+                      else 
+                        return ('Umidità off: ')+parseInt(states['input_number.humidity_auto_off_summer_'+variables.name].state) + (' %');
+                    ]]]  
+                  tap_action:
+                    action: call-service
+                    service: input_select.select_next
+                    service_data:
+                      entity_id: '[[[ return "input_select.hvac_modes_"+variables.name ]]]'
+                  hold_action:
+                    action: more-info
+                    entity: >-
+                      [[[
+                      let season =
+                      states['input_select.season_of_use_'+variables.name].state;
+                      if (season === 'Estate Gradi Celsius') 
+                      return "input_number.humidity_auto_off_summer_"+variables.name; ]]]
+              line_5:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: |
+                    [[[
+                      let season = states['input_select.season_of_use_'+variables.name].state;
+                      if (season === 'Inverno') 
+                      return ('Auto off: ')+states['input_number.temperature_auto_off_winter_'+variables.name].state+('°C');
+                      else if (season === 'Umidità') 
+                      return ('Auto off: ')+states['input_number.humidity_auto_off_'+variables.name].state+('%');
+                      else if (season === 'Estate Indice di thom') 
+                      return ('Auto off: ')+states['input_number.temperature_auto_off_thom_'+variables.name].state+(' DI');
+                      else if (season === 'Estate Gradi Celsius') 
+                      return ('Auto off: ')+states['input_number.temperature_auto_off_summer_'+variables.name].state+('°C');
+                      else 
+                        return 'Target: Error';
+                    ]]]  
+                  label: "[[[ return ('Ritardo: ')+parseInt(states['input_number.delay_auto_off_'+variables.name].state)+('min')]]]"
+                  tap_action:
+                    action: more-info
+                    entity: |
+                      [[[
+                        let season = states['input_select.season_of_use_'+variables.name].state;
+                        if (season === 'Inverno') 
+                        return "input_number.temperature_auto_off_winter_"+variables.name;
+                        else if (season === 'Umidità') 
+                        return "input_number.humidity_auto_off_"+variables.name;
+                        else if (season === 'Estate Indice di thom') 
+                        return "input_number.temperature_auto_off_thom_"+variables.name;
+                        else if (season === 'Estate Gradi Celsius') 
+                        return "input_number.temperature_auto_off_summer_"+variables.name;
+                        else 
+                          return 'Target: Error';
+                      ]]]  
+                  hold_action:
+                    action: more-info
+                    entity: '[[[ return "input_number.delay_auto_off_"+variables.name ]]]'
+
+        #       IPOSTAZIONI pag.3
+        display_setting_3:
+          card:
+            type: custom:button-card
+            triggers_update: all
+            variables:
+              page: 3/4
+            template: display_settign_fields
+            custom_fields:
+              line_1:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: |
+                    [[[
+                      if (states['input_boolean.notify_'+variables.name].state === 'on') 
+                      return "Notifica: ATTIVO";
+                      else 
+                        return 'Notifica: NON ATTIVO';
+                    ]]]  
+                  label: ' '
+                  tap_action:
+                    action: call-service
+                    service: input_boolean.toggle
+                    service_data:
+                      entity_id: '[[[ return "input_boolean.notify_"+variables.name ]]]'
+              line_2:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: |
+                    [[[
+                      if (states['input_boolean.check_window_'+variables.name].state === 'on') 
+                      return "Finestra: ATTIVO";
+                      else 
+                        return 'Finestra: NON ATTIVO';
+                    ]]]  
+                  label: ' '
+                  tap_action:
+                    action: call-service
+                    service: input_boolean.toggle
+                    service_data:
+                      entity_id: '[[[ return "input_boolean.check_window_"+variables.name ]]]'
+              line_3:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: |
+                    [[[
+                      if (states['input_boolean.presence_'+variables.name].state === 'on') 
+                      return "Presenza: ATTIVO";
+                      else 
+                        return 'Presenza: NON ATTIVO';
+                    ]]]  
+                  label: ' '
+                  tap_action:
+                    action: call-service
+                    service: input_boolean.toggle
+                    service_data:
+                      entity_id: '[[[ return "input_boolean.presence_"+variables.name ]]]'
+              line_4:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: |
+                    [[[
+                      if (states['automation.controllo_contenitore_scarico_acqua_'+variables.name].state === 'on') 
+                      return "Acqua: ATTIVO";
+                      else 
+                        return 'Acqua: NON ATTIVO';
+                    ]]]  
+                  label: ' '
+                  tap_action:
+                    action: call-service
+                    service: automation.toggle
+                    service_data:
+                      entity_id: >-
+                        [[[ return
+                        "automation.controllo_contenitore_scarico_acqua_"+variables.name ]]]
+              line_5:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: Reset statistiche
+                  label: '[[[ return states[''input_text.data_reset_''+variables.name].state]]]'
+                  hold_action:
+                    action: call-service
+                    service: '[[[ return ''script.reset_statistic_''+variables.name ]]]'
+
+        #       IPOSTAZIONI pag.4
+        display_setting_4:
+          card:
+            type: custom:button-card
+            triggers_update: all
+            variables: 
+              page: 4/4
+            template: display_settign_fields
+            custom_fields:
+              line_1:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: |
+                    [[[
+                      if (states['input_boolean.check_temp_ext_'+variables.name].state === 'on') 
+                      return "Temp Esterna: ATTIVO";
+                      else 
+                        return 'Temp Esterna: NON ATTIVO';
+                    ]]]  
+                  label: ' '
+                  tap_action:
+                    action: call-service
+                    service: input_boolean.toggle
+                    service_data:
+                      entity_id: '[[[ return "input_boolean.check_temp_ext_"+variables.name ]]]'
+              line_2:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: "[[[ return ('Orario ON: ')+states['input_datetime.temp_ext_on_'+variables.name].state.substring(0,5)]]]"
+                  label: ' '
+                  tap_action:
+                    action: more-info
+                    entity: '[[[ return "input_datetime.temp_ext_on_"+variables.name ]]]'
+              line_5:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: ' '
+                  label: ' '
+                  tap_action:
+                    action: none
+              line_4:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name: |
+                    [[[
+                      let season = states['input_select.season_of_use_'+variables.name].state;
+                      if (season === 'Inverno') 
+                      return ('Diffenza: ')+states['input_number.offset_temperatura_ext_inverno_'+variables.name].state+('°C');
+                      else if (season === 'Umidità') 
+                      return ('Diffenza: ')+states['input_number.offset_humidity_ext_'+variables.name].state+('%');
+                      else if (season === 'Estate Indice di thom') 
+                      return ('Diffenza: ')+states['input_number.offset_thom_ext_'+variables.name].state+(' DI');
+                      else if (season === 'Estate Gradi Celsius') 
+                      return ('Diffenza: ')+states['input_number.offset_temp_ext_estate_'+variables.name].state+('°C');
+                      else 
+                        return 'Target: Error';
+                    ]]]  
+                  label: "[[[ return ('Mode: ')+states['input_select.season_of_use_'+variables.name].state ]]]"
+                  tap_action:
+                    action: more-info
+                    entity: |
+                      [[[
+                        let season = states['input_select.season_of_use_'+variables.name].state;
+                        if (season === 'Inverno') 
+                        return "input_number.offset_temperatura_ext_inverno_"+variables.name;
+                        else if (season === 'Umidità') 
+                        return "input_number.offset_humidity_ext_"+variables.name;
+                        else if (season === 'Estate Indice di thom') 
+                        return "input_number.offset_thom_ext_"+variables.name;
+                        else if (season === 'Estate Gradi Celsius') 
+                        return "input_number.offset_temp_ext_estate_"+variables.name;
+                        else 
+                          return 'Target: Error';
+                      ]]]  
+              line_3:
+                card:
+                  type: custom:button-card
+                  template: display_setting_on_off
+                  name:  "[[[ return ('Orario OFF: ')+states['input_datetime.temp_ext_off_'+variables.name].state.substring(0,5)]]]"
+                  label: ' '
+                  tap_action:
+                    action: more-info
+                    entity: '[[[ return "input_datetime.temp_ext_off_"+variables.name ]]]'
