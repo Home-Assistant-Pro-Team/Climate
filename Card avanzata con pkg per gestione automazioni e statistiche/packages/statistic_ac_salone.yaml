@@ -10,10 +10,10 @@ template:
         state:  >-
           {%set climate = 'climate.condizionatore_salone' %}
           {%if not is_state(climate,'off') and as_timestamp(states[climate].last_changed) <= as_timestamp(now())%}
-            {{((as_timestamp(now()) - as_timestamp(states.climate.condizionatore_salone.last_changed))/3600)}}
+            {{((as_timestamp(now()) - as_timestamp(states[climate].last_changed))/3600)}}
           {% else %}
             0
-          {% endif %}          
+          {% endif %}       
   - sensor:
       - name: Consumi AC Salone ## PERSONALIZZA ARRAY climate_energy CON LA PROPRIA ENTITA' 
         icon: mdi:history
