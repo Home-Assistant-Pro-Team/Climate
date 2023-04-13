@@ -15,7 +15,7 @@ template:
             0
           {% endif %}       
   - sensor:
-      - name: Consumi AC Salone ## PERSONALIZZA ARRAY climate_energy CON LA PROPRIA ENTITA' 
+      - name: Consumi ac_salone ## PERSONALIZZA ARRAY climate_energy CON LA PROPRIA ENTITA' 
         icon: mdi:history
         state:  >
           {% set climate_energy = 'sensor.condizionatore_sala_energy' %}
