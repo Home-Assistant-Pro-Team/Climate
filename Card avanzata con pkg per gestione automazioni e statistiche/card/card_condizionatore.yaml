@@ -130,6 +130,10 @@
             type: custom:button-card
             tap_action:
               action: none
+            styles:
+              card:
+                - background-color: rgba(0,0,0,0.0
+                - border-width: 0px
             custom_fields:
               name_climate: |
                 [[[
