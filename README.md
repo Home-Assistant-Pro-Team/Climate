@@ -211,3 +211,11 @@ Rimango aperto al feedback e a qualsiasi idea per rendere questo progetto più u
 
 [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fmarco-hacs%2FAutomatic-air-conditioner%2Fblob%2Fmain%2Fautomatic_air_conditioner.yaml)
 https://community.home-assistant.io/t/automatic-air-conditioner/511251
+
+
+### **Supportaci**
+Se hai apprezzato questo progetto, ci piacerebbe avere il tuo supporto. Anche un semplice caffè può fare la differenza. 
+I fondi raccolti saranno utilizzati per acquistare nuovo materiale e realizzare nuovi progetti. Puoi contribuire cliccando sul pulsante qui sotto. 
+Grazie di cuore per il tuo sostegno!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/M4M1MI00I)
